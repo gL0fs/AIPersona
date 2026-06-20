@@ -175,60 +175,62 @@ Persona/
 
 ## 快速开始
 
-### 1. 克隆项目
+### 前置条件
+
+- .NET 9 SDK
+- [DeepSeek API Key](https://platform.deepseek.com/)（[注册送 500 万 token](https://platform.deepseek.com/)）
+
+---
+
+### 方式一：本地运行（dotnet run）
 
 ```bash
+# 1. 克隆
 git clone https://github.com/gL0fs/AIPersona.git
 cd Persona
-```
 
-### 2. 创建本地配置文件
-
-```bash
+# 2. 创建本地配置
 cp appsettings.template.json appsettings.Development.json
-```
 
-### 3. 编辑 `appsettings.Development.json`，填入你自己的 Key
+# 3. 编辑 appsettings.Development.json，改两处
+#    - Jwt.SecretKey：随便写一个长字符串（至少32字符）
+#    - DeepSeek.ApiKey：填入你的 DeepSeek API Key
 
-```json
-{
-  "Jwt": {
-    "SecretKey": "随便写一个至少32个字符的随机字符串"
-  },
-  "DeepSeek": {
-    "ApiKey": "sk-你的-deepseek-api-key",
-    "BaseUrl": "https://api.deepseek.com/v1",
-    "ModelName": "deepseek-chat"
-  }
-}
-```
-
-### 4. 运行
-
-```bash
+# 4. 启动
 dotnet run
 ```
 
 打开 `http://localhost:5137`
 
-或者用 Docker（通过环境变量注入配置，不需要本地文件）：
+---
+
+### 方式二：Docker 运行
+
+Docker 不需要任何本地配置文件，通过环境变量传入：
 
 ```bash
-DEEPSEEK_API_KEY=sk-your-key JWT_SECRET_KEY=your-secret docker compose up -d --build
+# 1. 克隆
+git clone https://github.com/gL0fs/AIPersona.git
+cd Persona
+
+# 2. 启动（替换成你自己的 Key）
+DEEPSEEK_API_KEY=sk-你的key JWT_SECRET_KEY=随便一个长字符串 docker compose up -d --build
 ```
 
 打开 `http://localhost:8080`
 
+> 可以把环境变量写入 `.env` 文件（已 gitignore），之后直接 `docker compose up -d --build` 即可。
+
 ---
 
-### 配置文件说明
+### 配置说明
 
-| 文件 | 作用 | Git |
-|------|------|-----|
-| `appsettings.json` | 基础配置（Logging、AllowedHosts） | ✅ |
-| `appsettings.Development.json` | 本地开发敏感配置，从 template 复制 | ❌ gitignore |
-| `appsettings.template.json` | 模板文件，给新用户参考 | ✅ |
-| `docker-compose.yml` | Docker 通过环境变量注入敏感配置 | ✅ |
+| 文件 | 用途 | 是否提交 |
+|------|------|---------|
+| `appsettings.json` | 公共配置（日志等），无敏感信息 | ✅ |
+| `appsettings.template.json` | 本地开发的配置模板 | ✅ |
+| `appsettings.Development.json` | 你本机的真实配置，从 template 复制而来 | ❌ |
+| `docker-compose.yml` | Docker 通过环境变量 `DEEPSEEK_API_KEY` / `JWT_SECRET_KEY` 注入 | ✅ |
 
 ## License
 
