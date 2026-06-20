@@ -211,10 +211,10 @@ dotnet run
 
 打开 `http://localhost:5137`
 
-或者用 Docker：
+或者用 Docker（通过环境变量注入配置，不需要本地文件）：
 
 ```bash
-docker compose up -d --build
+DEEPSEEK_API_KEY=sk-your-key JWT_SECRET_KEY=your-secret docker compose up -d --build
 ```
 
 打开 `http://localhost:8080`
@@ -225,9 +225,10 @@ docker compose up -d --build
 
 | 文件 | 作用 | Git |
 |------|------|-----|
-| `appsettings.json` | 基础配置（Logging、AllowedHosts），无敏感信息 | ✅ 已提交 |
-| `appsettings.Development.json` | 敏感配置（JWT、API Key），本机独有 | ❌ gitignore |
-| `appsettings.template.json` | 给新用户的模板，复制后填 Key | ✅ 已提交 |
+| `appsettings.json` | 基础配置（Logging、AllowedHosts） | ✅ |
+| `appsettings.Development.json` | 本地开发敏感配置，从 template 复制 | ❌ gitignore |
+| `appsettings.template.json` | 模板文件，给新用户参考 | ✅ |
+| `docker-compose.yml` | Docker 通过环境变量注入敏感配置 | ✅ |
 
 ## License
 
