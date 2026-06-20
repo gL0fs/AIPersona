@@ -51,16 +51,16 @@
 
     async Task DoLogin()
     {
-        try { _error = ""; var r = await Auth.LoginAsync(_username, _password); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/", true); }
+        try { _error = ""; var r = await Auth.LoginAsync(_username, _password); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/"); }
         catch (Exception ex) { _error = ex.Message; }
     }
     async Task DoRegister()
     {
-        try { _error = ""; var r = await Auth.RegisterAsync(_username, _password); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/", true); }
+        try { _error = ""; var r = await Auth.RegisterAsync(_username, _password); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/"); }
         catch (Exception ex) { _error = ex.Message; }
     }
     async Task GuestLogin()
     {
-        var r = await Auth.GuestLoginAsync(); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/", true);
+        var r = await Auth.GuestLoginAsync(); State.Token = r.Token; State.Username = r.Username; Nav.NavigateTo("/");
     }
 }

@@ -175,42 +175,59 @@ Persona/
 
 ## 快速开始
 
-### 前置条件
+### 1. 克隆项目
 
-- .NET 9 SDK
-- [DeepSeek API Key](https://platform.deepseek.com/)
+```bash
+git clone https://github.com/gL0fs/AIPersona.git
+cd Persona
+```
 
-### 配置
+### 2. 创建本地配置文件
 
 ```bash
 cp appsettings.template.json appsettings.Development.json
 ```
 
-编辑 `appsettings.Development.json`，填入你的 JWT Secret 和 DeepSeek API Key。
+### 3. 编辑 `appsettings.Development.json`，填入你自己的 Key
 
-配置文件说明：
+```json
+{
+  "Jwt": {
+    "SecretKey": "随便写一个至少32个字符的随机字符串"
+  },
+  "DeepSeek": {
+    "ApiKey": "sk-你的-deepseek-api-key",
+    "BaseUrl": "https://api.deepseek.com/v1",
+    "ModelName": "deepseek-chat"
+  }
+}
+```
 
-| 文件 | 作用 | 提交到 Git |
-|------|------|-----------|
-| `appsettings.json` | 公共基础配置（Logging 等） | ❌ 已 gitignore |
-| `appsettings.Development.json` | 本地敏感配置（JWT、API Key） | ❌ 已 gitignore |
-| `appsettings.template.json` | 配置模板，不含真实密钥 | ✅ |
-
-### 本地运行
+### 4. 运行
 
 ```bash
 dotnet run
 ```
 
-访问 `http://localhost:5137`
+打开 `http://localhost:5137`
 
-### Docker 运行
+或者用 Docker：
 
 ```bash
 docker compose up -d --build
 ```
 
-访问 `http://localhost:8080`
+打开 `http://localhost:8080`
+
+---
+
+### 配置文件说明
+
+| 文件 | 作用 | Git |
+|------|------|-----|
+| `appsettings.json` | 基础配置（Logging、AllowedHosts），无敏感信息 | ✅ 已提交 |
+| `appsettings.Development.json` | 敏感配置（JWT、API Key），本机独有 | ❌ gitignore |
+| `appsettings.template.json` | 给新用户的模板，复制后填 Key | ✅ 已提交 |
 
 ## License
 

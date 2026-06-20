@@ -3,5 +3,5 @@ obj/
 *.db
 *.db-shm
 *.db-wal
-appsettings.json
 appsettings.Development.json
+.NET技术报告.md
