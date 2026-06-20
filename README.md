@@ -180,14 +180,25 @@ Persona/
 - .NET 9 SDK
 - [DeepSeek API Key](https://platform.deepseek.com/)
 
+### 配置
+
+```bash
+cp appsettings.template.json appsettings.Development.json
+```
+
+编辑 `appsettings.Development.json`，填入你的 JWT Secret 和 DeepSeek API Key。
+
+配置文件说明：
+
+| 文件 | 作用 | 提交到 Git |
+|------|------|-----------|
+| `appsettings.json` | 公共基础配置（Logging 等） | ❌ 已 gitignore |
+| `appsettings.Development.json` | 本地敏感配置（JWT、API Key） | ❌ 已 gitignore |
+| `appsettings.template.json` | 配置模板，不含真实密钥 | ✅ |
+
 ### 本地运行
 
 ```bash
-# 1. 配置
-cp appsettings.template.json appsettings.Development.json
-# 编辑 appsettings.Development.json，填入你的 API Key
-
-# 2. 运行
 dotnet run
 ```
 
@@ -196,7 +207,6 @@ dotnet run
 ### Docker 运行
 
 ```bash
-# 编辑 appsettings.Development.json 填入 API Key
 docker compose up -d --build
 ```
 
