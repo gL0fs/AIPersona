@@ -1,0 +1,149 @@
+@page "/quiz/{SessionId:int}"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@inject QuizService QuizSvc
+@inject ReportService Report
+@inject NavigationManager Nav
+
+<PageTitle>Persona - 性格分析中</PageTitle>
+
+<div style="max-width:600px;margin:1rem auto;">
+
+    @* Progress *@
+    <div class="animate-fade-in" style="margin-bottom:2rem;">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>@_progressText</span><span>@_progress%</span>
+        </div>
+        <div class="progress" style="height:4px;">
+            <div class="progress-bar" style="@_progressStyle"></div>
+        </div>
+    </div>
+
+    @* Question bubble *@
+    @if (!_loading && _currentQuestion.Length > 0)
+    {
+        <div class="animate-fade-in-up" style="margin-bottom:1.5rem;display:flex;gap:0.75rem;align-items:flex-start;">
+            <div style="width:40px;height:40px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,var(--accent-light),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🧠</div>
+            <div class="card" style="flex:1;border-radius:16px 16px 16px 4px;">
+                <div class="card-body" style="padding:1rem 1.25rem;">
+                    <p style="font-size:1.1rem;line-height:1.65;margin:0;">@_currentQuestion</p>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_loading)
+    {
+        <div class="text-center" style="padding:3rem 0;">
+            <div style="display:flex;gap:0.4rem;justify-content:center;margin-bottom:1rem;">
+                <div class="skeleton" style="width:8px;height:8px;border-radius:50%;animation-delay:0s;"></div>
+                <div class="skeleton" style="width:8px;height:8px;border-radius:50%;animation-delay:0.2s;"></div>
+                <div class="skeleton" style="width:8px;height:8px;border-radius:50%;animation-delay:0.4s;"></div>
+            </div>
+            <p class="text-muted" style="font-size:0.9rem;">AI 正在思考...</p>
+        </div>
+    }
+
+    @* Answer area *@
+    @if (!_loading && !_completed)
+    {
+        <div class="animate-fade-in" style="display:flex;gap:0.75rem;align-items:flex-start;">
+            <div style="width:40px;height:40px;flex-shrink:0;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:var(--text-muted);font-weight:700;">你</div>
+            <div style="flex:1;">
+                <form @onsubmit="SubmitAnswer">
+                    <textarea @bind="_answer" class="form-control" rows="3"
+                              placeholder="写下你的回答..."
+                              disabled="@_submitting"
+                              style="border-radius:16px 16px 4px 16px;margin-bottom:0.75rem;"></textarea>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary" disabled="@_submitting">
+                            发送
+                        </button>
+                        @if (_round >= 2)
+                        {
+                            <button type="button" class="btn btn-sm text-muted"
+                                    style="border:none;background:transparent;font-size:0.85rem;"
+                                    disabled="@_submitting" @onclick="ViewResults">
+                                不想聊了，直接看结果 →
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    @if (_completed)
+    {
+        <div class="text-center animate-fade-in" style="padding:3rem 0;">
+            <div class="spinner-border mb-2" role="status" style="color:var(--accent);"></div>
+            <p style="color:var(--text-muted);">正在生成分析报告...</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private string _currentQuestion = "";
+    private string _answer = "";
+    private string _progressText = "";
+    private int _progress;
+    private string _progressStyle = "width:0%";
+    private int _round;
+    private bool _loading = true, _submitting, _completed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var session = await Db.Sessions.FindAsync(SessionId);
+        if (session == null) { Nav.NavigateTo("/"); return; }
+        if (session.Messages.Count == 0) await QuizSvc.StartConversationAsync(SessionId);
+        await LoadCurrentQuestion();
+    }
+
+    async Task LoadCurrentQuestion()
+    {
+        var session = await Db.Sessions.FindAsync(SessionId);
+        var msgs = session!.Messages.OrderBy(m => m.Timestamp).ToList();
+        _round = msgs.Count(m => m.Role == "user");
+        _currentQuestion = msgs.LastOrDefault(m => m.Role == "assistant")?.Content ?? "";
+        _progress = QuizSvc.GetProgress(session);
+        _progressStyle = $"width:{_progress}%";
+        if (_progress < 20) _progressText = "刚刚开始...";
+        else if (_progress < 40) _progressText = "逐渐了解你";
+        else if (_progress < 60) _progressText = "过半了";
+        else if (_progress < 80) _progressText = "快要完成了";
+        else if (_progress < 100) _progressText = "马上完成";
+        else _progressText = "分析完毕";
+        _loading = false; _submitting = false;
+        StateHasChanged();
+    }
+
+    async Task SubmitAnswer()
+    {
+        if (string.IsNullOrWhiteSpace(_answer)) return;
+        var text = _answer.Trim();
+        _answer = "";
+        _submitting = true; _loading = true; StateHasChanged();
+
+        await foreach (var _ in QuizSvc.ChatStreamAsync(SessionId, text)) { }
+
+        await Db.Entry(Db.Sessions.Find(SessionId)!).ReloadAsync();
+        var session = await Db.Sessions.FindAsync(SessionId);
+
+        if (session!.Completed)
+        {
+            _completed = true; StateHasChanged();
+            await Task.Delay(1500);
+            await Report.GenerateAsync(SessionId);
+            Nav.NavigateTo($"/report/{SessionId}");
+        }
+        else { await LoadCurrentQuestion(); }
+    }
+
+    async Task ViewResults()
+    {
+        _loading = true; _completed = true; StateHasChanged();
+        await Report.GenerateAsync(SessionId);
+        Nav.NavigateTo($"/report/{SessionId}");
+    }
+}

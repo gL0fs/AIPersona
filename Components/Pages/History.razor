@@ -1,0 +1,59 @@
+@page "/history"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>历史记录</PageTitle>
+
+<div class="animate-fade-in-up" style="max-width:600px;margin:0 auto;">
+    <h3 style="margin-bottom:1.5rem;">📋 历史记录</h3>
+
+    @if (_sessions.Count == 0)
+    {
+        <div class="card" style="text-align:center;padding:3rem 1rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+            <p style="color:var(--text-muted);margin-bottom:1rem;">还没有分析记录</p>
+            <a href="/" class="btn btn-primary">开始第一次测试</a>
+        </div>
+    }
+    else
+    {
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            @foreach (var s in _sessions)
+            {
+                <div class="card animate-fade-in-up">
+                    <div class="card-body" style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+                        <div>
+                            <div style="font-weight:600;">#@s.Id</div>
+                            <div style="font-size:0.85rem;color:var(--text-muted);">
+                                @s.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm") · @s.MessageCount 轮
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            @if (s.Completed)
+                            { <span style="background:#d1fae5;color:#065f46;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">已完成</span> }
+                            else
+                            { <span style="background:#fef3c7;color:#92400e;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">未完成</span> }
+                            @if (s.Completed)
+                            { <a href="/report/@s.Id" class="btn btn-primary btn-sm">查看报告</a> }
+                            else
+                            { <a href="/quiz/@s.Id" class="btn btn-outline-secondary btn-sm">继续</a> }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private record SessionInfo(int Id, DateTime CreatedAt, int MessageCount, bool Completed);
+    private List<SessionInfo> _sessions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sessions = await Db.Sessions.OrderByDescending(s => s.CreatedAt).Take(20)
+            .Select(s => new SessionInfo(s.Id, s.CreatedAt, s.Messages.Count, s.Completed))
+            .ToListAsync();
+    }
+}
