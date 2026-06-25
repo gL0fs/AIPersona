@@ -7,17 +7,40 @@
 
 ---
 
-## 方式一：Docker 部署（推荐）
+## 方式一：预构建镜像部署（推荐，无需网络）
+
+```bash
+# 1. 导入镜像
+docker load < persona-app.tar
+
+# 2. 创建环境变量文件
+cp .env.example .env
+
+# 3. 编辑 .env，填入你的 Key
+
+# 4. 启动
+docker run -d --name persona \
+  --env-file .env \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e ASPNETCORE_URLS=http://+:8080 \
+  -p 8080:8080 \
+  --restart unless-stopped \
+  persona-app:latest
+```
+
+打开 `http://localhost:8080`
+
+---
+
+## 方式二：Docker Compose 构建部署
 
 ```bash
 # 1. 创建环境变量文件
 cp .env.example .env
 
 # 2. 编辑 .env，填入你的 Key
-#    DEEPSEEK_API_KEY=sk-你的key
-#    JWT_SECRET_KEY=任意至少32字符的长字符串
 
-# 3. 启动
+# 3. 构建并启动
 docker compose up -d --build
 ```
 
@@ -27,7 +50,7 @@ docker compose up -d --build
 
 ---
 
-## 方式二：dotnet publish 部署
+## 方式三：dotnet publish 部署
 
 适用于无 Docker 环境、需离线部署的场景。
 
@@ -66,7 +89,7 @@ dotnet Persona.dll
 
 ---
 
-## 方式三：本地开发运行
+## 方式四：本地开发运行
 
 ```bash
 cp appsettings.template.json appsettings.Development.json

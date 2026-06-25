@@ -6,3 +6,4 @@ obj/
 appsettings.Development.json
 .env
 publish/
+persona-app.tar
