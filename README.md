@@ -175,6 +175,8 @@ Persona/
 
 ## 快速开始
 
+> 详细部署说明见 [DEPLOY.md](./DEPLOY.md)
+
 ### 前置条件
 
 - .NET 9 SDK

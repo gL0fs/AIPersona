@@ -4,6 +4,5 @@ obj/
 *.db-shm
 *.db-wal
 appsettings.Development.json
-.NET技术报告.md
 .env
 publish/
