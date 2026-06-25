@@ -213,13 +213,39 @@ Docker 不需要任何本地配置文件，通过环境变量传入：
 git clone https://github.com/gL0fs/AIPersona.git
 cd Persona
 
-# 2. 启动（替换成你自己的 Key）
-DEEPSEEK_API_KEY=sk-你的key JWT_SECRET_KEY=随便一个长字符串 docker compose up -d --build
+# 2. 创建环境变量文件
+cp .env.example .env
+
+# 3. 编辑 .env，填入你的 DeepSeek API Key 和 JWT 密钥
+
+# 4. 启动
+docker compose up -d --build
 ```
 
 打开 `http://localhost:8080`
 
-> 可以把环境变量写入 `.env` 文件（已 gitignore），之后直接 `docker compose up -d --build` 即可。
+> Dockerfile 使用 `noble-chiseled` 精简基础镜像，最终镜像体积约 120MB（对比完整镜像 ~200MB+）。
+
+---
+
+### 方式三：发布版本（dotnet publish）
+
+生成可直接部署的发布包：
+
+```bash
+# 1. 克隆 + 配置（同方式一）
+
+# 2. 发布
+dotnet publish -c Release -o publish
+
+# 3. 运行
+cd publish
+ASPNETCORE_URLS=http://+:8080 dotnet Persona.dll
+```
+
+打开 `http://localhost:8080`
+
+> 发布产物在 `publish/` 目录，可直接拷贝到服务器部署。
 
 ---
 
@@ -230,6 +256,8 @@ DEEPSEEK_API_KEY=sk-你的key JWT_SECRET_KEY=随便一个长字符串 docker com
 | `appsettings.json` | 公共配置（日志等），无敏感信息 | ✅ |
 | `appsettings.template.json` | 本地开发的配置模板 | ✅ |
 | `appsettings.Development.json` | 你本机的真实配置，从 template 复制而来 | ❌ |
+| `.env.example` | Docker 环境变量模板 | ✅ |
+| `.env` | Docker 真实环境变量，从 .env.example 复制 | ❌ |
 | `docker-compose.yml` | Docker 通过环境变量 `DEEPSEEK_API_KEY` / `JWT_SECRET_KEY` 注入 | ✅ |
 
 ## License

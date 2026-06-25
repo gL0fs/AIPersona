@@ -8,3 +8,4 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - DeepSeek__ApiKey=${DEEPSEEK_API_KEY}
       - Jwt__SecretKey=${JWT_SECRET_KEY}
+    restart: unless-stopped
